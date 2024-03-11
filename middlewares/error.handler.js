@@ -3,7 +3,7 @@ const mongoErrorHandler = (err, req, res, next) => {
   const splitStack = stack.split(':');
   if (splitStack[0] === 'MongoServerError') {
     res.status(400).json({
-      message: 'Error in BD',
+      message: message,
     });
   }
 

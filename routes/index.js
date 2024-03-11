@@ -17,6 +17,7 @@ const countryRouter = require('./country.router');
 const roleRouter = require('./role.router');
 const permissionRouter = require('./permission.router');
 const memberRouter = require('./member.router');
+const seatRouter = require('./seat.router');
 const { userStatus } = require('../middlewares/statuspost.handler');
 
 const routerApi = (app) => {
@@ -37,16 +38,18 @@ const routerApi = (app) => {
     orderRouter,
   );
 
-  router.use('/store',
+  router.use(
+    '/store',
     passport.authenticate('jwt', { session: false }),
     (req, res, next) => userStatus(req, res, next, { search: 'store' }),
-    storeRouter
+    storeRouter,
   );
 
-  router.use('/product',
+  router.use(
+    '/product',
     passport.authenticate('jwt', { session: false }),
     (req, res, next) => userStatus(req, res, next, { search: 'store' }),
-    productRouter
+    productRouter,
   );
 
   router.use(
@@ -79,6 +82,11 @@ const routerApi = (app) => {
     '/orders-food',
     passport.authenticate('jwt', { session: false }),
     orderFoodRouter,
+  );
+  router.use(
+    '/seats',
+    passport.authenticate('jwt', { session: false }),
+    seatRouter,
   );
   router.use(
     '/roles',

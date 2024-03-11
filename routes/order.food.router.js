@@ -4,8 +4,8 @@ const router = express.Router();
 const OrderFoodService = require('../services/order.food.service');
 const service = new OrderFoodService();
 
-const MyClientOneSignal = require('../utils/notifications/oneSignal');
-const OneSignal = require('@onesignal/node-onesignal');
+const UserService = require('../services/user.service');
+const serviceUser = new UserService();
 
 router.get('/find-by-user', async (req, res, next) => {
   try {
@@ -36,6 +36,28 @@ router.put('/:id', async (req, res, next) => {
 
     req.app.io.emit('orders', order);
 
+    // const usuarios = await serviceUser.find();
+    // const user = usuarios.filter(
+    //   (user) => user._id.toString() === req.body.user.toString(),
+    // );
+
+    // console.log('User', user);
+
+    // if (req.body.status === 'ready') {
+    //   const payload = {
+    //     notification: {
+    //       title: '¡Pedido listo!',
+    //       body: 'Tu pedido ya está listo para ser recodigo o enviado',
+    //     },
+    //   };
+
+    //   const not = await sendNotification(
+    //     'fx6sbeKYTpyMuvmdyI-5ej:APA91bFnrlWvOv381PQRs7zBea8tLP9ZLzzZMu0iQyf63tzgLqkCEvTKBdnfJP_vHwEgOrKguFG9MjkRetih0DPwyDlM3eK4ns3asXlhQy_mqn7VgIa96hdJOZJsKBIKW8_LPrenooqz',
+    //     payload,
+    //   );
+    //   console.log(not);
+    // }
+
     res.status(201).json({ data: order });
   } catch (e) {
     next(e);
@@ -49,26 +71,6 @@ router.post('/', async (req, res, next) => {
     const order = await service.create({ ...data, user: req.user.sub });
 
     req.app.io.emit('orders', order);
-
-    // const notification = new OneSignal.Notification();
-    // notification.app_id = '9e3a4ffb-b6b8-4533-803a-6f8d1c95feb9';
-    // // Name property may be required in some case, for instance when sending an SMS.
-    // notification.name = 'test_notification_name';
-    // notification.contents = {
-    //   en: "Gig'em Ags",
-    // };
-
-    // // required for Huawei
-    // notification.headings = {
-    //   en: "Gig'em Ags",
-    // };
-
-    // // This example uses segments, but you can also use filters or target individual users
-    // // https://documentation.onesignal.com/reference/create-notification
-    // notification.included_segments = ['Total Subscriptions'];
-
-    // const notificationResponse =
-    //   await MyClientOneSignal.createNotification(notification);
 
     res.status(201).json({ data: order });
   } catch (e) {

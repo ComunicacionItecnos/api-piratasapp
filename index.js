@@ -12,7 +12,9 @@ const {
   boomErrorHandler,
 } = require('./middlewares/error.handler');
 const main = require('./libs/mongodb');
+
 require('./utils/auth');
+require('./utils/notifications/firebase');
 
 //Config socket.io
 const server = http.createServer(app);

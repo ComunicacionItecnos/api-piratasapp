@@ -4,6 +4,11 @@ const router = express.Router();
 const NewsService = require('../services/news.service');
 const service = new NewsService();
 
+const UserService = require('../services/user.service');
+const serviceUser = new UserService();
+
+const { sendNotification } = require('../utils/notifications');
+
 router.get('/', async (req, res, next) => {
   try {
     const news = await service.find();
@@ -31,8 +36,25 @@ router.post('/', async (req, res, next) => {
 
     req.app.io.emit('articles', article);
 
+    // Obtener token de todos los usuarios
+    const users = await serviceUser.find();
+    const filter = users.filter((user) => user.notificationToken !== '');
+    const tokens = filter.map((user) => user.notificationToken);
+
+    // Ejemplo de uso
+    const registrationToken = tokens;
+    const payload = {
+      notification: {
+        title: req.body.title,
+        body: req.body.article,
+      },
+    };
+
+    sendNotification(registrationToken, payload);
+
     res.status(201).json({ data: article });
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });

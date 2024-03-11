@@ -29,14 +29,14 @@ class UserService {
   }
 
   async store(userData) {
-    userData.password = await bcrypt.hash(userData.password, 10);
+    const passwordCrypt = await bcrypt.hash(userData.password, 10);
     // Example Status {
     //   name: 'store',
     //   value: false,
     //   userEdit,
     // }
     // userData.status = [];
-    const user = new User({ ...userData });
+    const user = new User({ ...userData, password: passwordCrypt });
     await user.save();
 
     return user;
@@ -59,6 +59,13 @@ class UserService {
     const user = await User.findOneAndUpdate({ _id: id }, data).exec();
 
     return user;
+  }
+
+  async getAllTokenNotification() {
+    return await User.find(
+      { tokenNotification: { $ne: null } },
+      'tokenNotification',
+    ).exec();
   }
 
   async findEpecific() {
