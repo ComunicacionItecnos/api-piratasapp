@@ -32,16 +32,6 @@ router.get('/find/:idProd', async (req, res, next) => {
   }
 });
 
-router.post('/create/store', async (req, res, next) => {
-  const idUser = req.user.sub;
-  try {
-    const response = await service.newStore({ ...req.body }, idUser);
-    res.status(200).json({ data: response }); // REGISTRAR  NUEVO PRODUCTO EN UNA TIENDA
-  } catch (e) {
-    next(e);
-  }
-});
-
 router.get('/find/store/:idProduct/:nameStore', async (req, res, next) => {
   const idProduct = req.params.idProduct;
   const nameStore = req.params.nameStore;
@@ -53,23 +43,31 @@ router.get('/find/store/:idProduct/:nameStore', async (req, res, next) => {
   }
 });
 
-//FILTERS
-router.patch('/update/info/', async (req, res, next) => {
+//PANEL DE ADMINISTRADOR
+router.get('/findall', async (req, res, next) => {
   try {
-    const response = await service.generalUpdate({ ...req.body }); // ACTUALIZA UNA ESPECIFICACION DE UN PRODUCTO
-    res.status(200).json({ data: response });
+    const data = await service.findAll(); // ENLISTA TODOS LOS PRODUCTOS
+    res.status(200).json({ data: data });
   } catch (e) {
     next(e);
   }
 });
 
-router.delete('/delete/store/', async (req, res, next) => {
-  const idProduct = req.query.idProduct;
-  const idStore = req.query.idStore;
-
+router.get('/findall/:id', async (req, res, next) => {
+  const id = req.params.id;
   try {
-    const response = await service.delOfStore(idProduct, idStore); // ELIMINA UN PRODUCTO DE UNA TIENDA
-    res.status(200).json({ data: response });
+    const data = await service.findProdStores(id); // ENLISTA TODOS LOS PRODUCTOS
+    res.status(200).json({ data: data });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/findid/:id', async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    const data = await service.findId(id); // ENLISTA TODOS LOS PRODUCTOS
+    res.status(200).json({ data: data });
   } catch (e) {
     next(e);
   }
@@ -79,6 +77,26 @@ router.delete('/delete/', async (req, res, next) => {
   const idProduct = req.query.idProduct;
   try {
     const response = await service.del(idProduct); // ELIMINA UN PRODUCTO
+    res.status(200).json({ data: response });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch('/update/stock', async (req, res, next) => {
+  const idUser = req.user.sub;
+  try {
+    const response = await service.updateStock({...req.body}, idUser); // ELIMINA UN PRODUCTO
+    res.status(200).json({ data: response });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch('/update/product', async (req, res, next) => {
+  const idUser = req.user.sub;
+  try {
+    const response = await service.updateProduct({...req.body}, idUser); // ELIMINA UN PRODUCTO
     res.status(200).json({ data: response });
   } catch (e) {
     next(e);

@@ -146,27 +146,36 @@ class OrderService {
     }
   }
 
-  async findAll() {
+  async findAll(idStore) {
+    let condition = {};
+    if (idStore === "all") {
+      condition = {};
+    }else {
+      condition = { store: new mongoose.Types.ObjectId(idStore) };
+    }
+    console.log(idStore);
     const result = await model
-      .find(
-        {},
-        {
-          ' _id': 1,
-          deliveryDate: 1,
-          status: 1,
-          total: 1,
-          store: 1,
-          userOrder: {
-            name: 1,
-            lastname: 1,
-            motherLastname: 1,
-          },
-          createdAt: 1,
-          updatedAt: 1,
+    .find(
+      condition,
+      {
+        ' _id': 1,
+        deliveryDate: 1,
+        status: 1,
+        total: 1,
+        store: 1,
+        userOrder: {
+          name: 1,
+          lastname: 1,
+          motherLastname: 1,
         },
-      )
-      .populate('store userOrder.user')
-      .sort({ createdAt: -1 });
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    )
+    .sort({ createdAt: -1 })
+    .populate('store userOrder.user');
+
+    console.log(result.length);
     return await result;
   }
 

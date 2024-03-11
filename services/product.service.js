@@ -7,6 +7,12 @@ class ProductService {
   async new(data, idUser) {
     data.userEdit = idUser;
     data.priceOld = data.priceCurrent;
+    if (data.stores.length > 0) {
+      for (const store of data.stores) {
+        store.userEdit = idUser;
+        store.status = true;
+      }
+    }
     const result = await new model({ ...data });
     await result.save();
     return await result;
@@ -41,7 +47,6 @@ class ProductService {
         },
       },
     ]);
-    console.log(result.length);
     return await result;
   }
 
@@ -207,6 +212,7 @@ class ProductService {
           _id: 1,
           stores: {
             stock: 1,
+            status: 1,
             createdAt: 1,
           },
           userEditData: {
@@ -231,65 +237,250 @@ class ProductService {
   }
 
   //OPCIONES DE ADMINISTRADOR
-  async newStore(data, idUser) {
-    // REGISTRAR  NUEVO PRODUCTO EN UNA TIENDA
-    const store = {
-      store: data.idStore,
-      stock: data.stock,
-      createAt: new Date(),
-      status: true,
-      userEdit: idUser,
-    };
-
-    const result = await model.updateOne(
-      { _id: data.idProduct },
-      { $push: { stores: store } },
-    );
-
+  async findId(idProd) {
+    const result = await model.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(idProd) }, // Busca por el ID del producto
+      },
+      {
+        $unwind: {
+          path: '$stores',
+          preserveNullAndEmptyArrays: true // Preserva los documentos con 'stores' vacío o nulo
+        },
+      },
+      {
+        $lookup: {
+          from: 'stores',
+          localField: 'stores.store',
+          foreignField: '_id',
+          as: 'storeInfo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userEdit',
+          foreignField: '_id',
+          as: 'userEditData',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'stores.userEdit',
+          foreignField: '_id',
+          as: 'userEditStore',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id', // Agrupa por el ID del producto
+          name: { $first: '$name' }, // GREGA MAS CAMPOS A LA CONSULTA
+          sku: { $first: '$sku' },
+          description: { $first: '$description' },
+          typeProduct: { $first: '$typeProduct' },
+          size: { $first: '$size' },
+          exclusive: { $first: '$exclusive' },
+          priceCurrent: { $first: '$priceCurrent' },
+          priceOld: { $first: '$priceOld' },
+          image: { $first: '$image' },
+          status: { $first: '$status' },
+          category: { $first: '$category' },
+          updatedAt: { $first: '$updatedAt' },
+          userEdit: {
+            $addToSet: {
+              _id: { $arrayElemAt: ['$userEditData._id', 0] },
+              phone: { $arrayElemAt: ['$userEditData.phone', 0] },
+              name: { $arrayElemAt: ['$userEditData.name', 0] },
+              lastname: { $arrayElemAt: ['$userEditData.lastname', 0] },
+            }
+          },
+          stores: {
+            $addToSet: {
+              _id: { $arrayElemAt: ['$storeInfo._id', 0] },
+              name: { $arrayElemAt: ['$storeInfo.name', 0] },
+              stock: '$stores.stock',
+              status: '$stores.status',
+              userEditStore: {
+                _id: { $arrayElemAt: ['$userEditStore._id', 0] },
+                phone: { $arrayElemAt: ['$userEditStore.phone', 0] },
+                name: { $arrayElemAt: ['$userEditStore.name', 0] },
+                lastname: { $arrayElemAt: ['$userEditStore.lastname', 0] },
+              },
+            },
+          },
+        },
+      }
+    ]);
     return await result;
   }
 
-  async generalUpdate(data) {
-    // ACTUALIZA LA INFORMACIÓN GENERAL DEL PRODUCTO, SOLO EL ADMIN PUEDE REALIZAR ESTA ACCION
-    const result = await model.updateOne(
-      { _id: data.idProd },
+  async findProdStores(idStore) {
+    let condition = {};
+    if (idStore === "all") {
+      condition = {};
+    } else {
+      condition = { 'stores.store': new mongoose.Types.ObjectId(idStore) };
+    }
+    const result = await model.aggregate([
       {
-        $set: {
-          name: data.name,
-          person: data.person,
-          productType: data.productType,
-          description: data.description,
-          image: data.image,
-          category: data.category,
-          size: data.size,
-          userEdit: data.userEdit,
-          priceOld: data.priceOld,
-          priceCurrent: data.priceCurrent,
-          exclusive: data.exclusive,
-          status: data.status,
+        $unwind: {
+          path: '$stores',
+          preserveNullAndEmptyArrays: true // Preserva los documentos con 'stores' vacío o nulo
         },
       },
-    );
+      {
+        $match: condition,
+      },
+      {
+        $lookup: {
+          from: 'stores',
+          localField: 'stores.store',
+          foreignField: '_id',
+          as: 'storeInfo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'stores.userEdit',
+          foreignField: '_id',
+          as: 'userEditStore',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id', // Agrupa por el ID del producto
+          name: { $first: '$name' }, // GREGA MAS CAMPOS A LA CONSULTA
+          sku: { $first: '$sku' },
+          description: { $first: '$description' },
+          typeProduct: { $first: '$typeProduct' },
+          size: { $first: '$size' },
+          exclusive: { $first: '$exclusive' },
+          priceCurrent: { $first: '$priceCurrent' },
+          priceOld: { $first: '$priceOld' },
+          image: { $first: '$image' },
+          status: { $first: '$status' },
+          updatedAt: { $first: '$updatedAt' },
+          stores: {
+            $addToSet: {
+              _id: { $arrayElemAt: ['$storeInfo._id', 0] },
+              name: { $arrayElemAt: ['$storeInfo.name', 0] },
+              stock: '$stores.stock',
+              status: '$stores.status',
+              userEditStore: {
+                _id: { $arrayElemAt: ['$userEditStore._id', 0] },
+                phone: { $arrayElemAt: ['$userEditStore.phone', 0] },
+                name: { $arrayElemAt: ['$userEditStore.name', 0] },
+                lastname: { $arrayElemAt: ['$userEditStore.lastname', 0] },
+              },
+            },
+          },
+        },
+      }
+    ]);
+
     return await result;
   }
 
   async del(idProd) {
-    console.log(idProd);
     const result = await model.deleteOne({ _id: idProd }); // ELIMINA EL PRODUCTO
     return await result;
   }
 
-  async delOfStore(idProd, idStore) {
-    const result = await model.updateOne(
-      { _id: idProd },
-      {
-        $pull: {
-          store: { idStore: idStore },
-        },
-      },
-    );
-    return await result;
+  async updateStock(data, idUser) {
+    const session = await model.startSession();
+    await session.startTransaction();
+    try {
+      const stores = data.stores;
+      for (const item of stores) {
+        await model.updateOne(
+          { "_id": data.idProduct, 'stores.store': item.store },
+          {
+            $set: {
+              'stores.$.stock': item.stock,
+              'stores.$.userEdit': idUser,
+              'stores.$.updatedAt': new Date(),
+            }
+          },
+        );
+      }
+      await session.commitTransaction();
+      session.endSession();
+      return true;
+    }
+    catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw boom.badRequest(error);
+    }
   }
+
+  async updateProduct(data, idUser) {
+    const session = await model.startSession();
+    await session.startTransaction();
+    try {
+      const result = await model.updateOne(
+        { _id: data.idProduct },
+        {
+          $set: {
+            name: data.name,
+            sku: data.sku,
+            description: data.description,
+            image: data.image,
+            priceCurrent: data.priceCurrent,
+            priceOld: data.priceOld,
+            typeProduct: data.typeProduct,
+            category: data.category,
+            status: data.status,
+            exclusive: data.exclusive,
+            size: data.size,
+            userEdit: idUser,
+            updatedAt: new Date(),
+          },
+        },
+      );
+      const stores = data.stores;
+      for (const item of stores) {
+        const updated = await model.updateOne(
+          { "_id": data.idProduct, 'stores.store': item.store },
+          {
+            $set: {
+              'stores.$.stock': item.stock,
+              'stores.$.userEdit': idUser,
+              'stores.$.status': item.status,
+              'stores.$.updatedAt': new Date(),
+            }
+          },
+        );
+
+        if (updated.modifiedCount === 0) {
+          await model.updateOne(
+            { "_id": data.idProduct },
+            {
+              $addToSet: {
+                'stores': {
+                  'store': item.store,
+                  'stock': item.stock,
+                  'userEdit': idUser,
+                  'status': item.status,
+                  'updatedAt': new Date(),
+                }
+              }
+            },
+          );
+        }
+      }
+      await session.commitTransaction();
+      session.endSession();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw boom.badRequest(error);
+    }
+  }
+
 }
 
 module.exports = ProductService;

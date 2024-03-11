@@ -50,6 +50,15 @@ router.get('/lastPost', async (req, res, next) => {
   }
 });
 
+router.get('/uris', async (req, res, next) => {
+  try {
+    const response = await service.findUries(); // ENLISTA TODOS LOS POST
+    res.status(200).json({ data: response });
+  } catch (e) {
+    next(e);
+  }
+});
+
 router.get('/lastPostAdmin/:idUser', async (req, res, next) => {
   const { idUser } = req.params;
   try {

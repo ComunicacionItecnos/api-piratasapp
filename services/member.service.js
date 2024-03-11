@@ -94,7 +94,7 @@ class memberService {
       .find(
         {
           member: { $ne: null },
-          _id: { $ne: '65e0ec77e101dcd98c066cf9' },
+          //_id: { $ne: '65e0ec77e101dcd98c066cf9' },
         },
         'name nickname lastname motherlastname phone email image member',
       )
@@ -108,7 +108,7 @@ class memberService {
     const result = await modelUser.find(
       {
         member: null,
-        _id: { $ne: '65e0ec77e101dcd98c066cf9' },
+        //_id: { $ne: '65e0ec77e101dcd98c066cf9' },
       },
       'name nickname lastname motherlastname phone email image',
     );

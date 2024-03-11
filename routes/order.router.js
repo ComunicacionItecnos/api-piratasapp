@@ -44,9 +44,10 @@ router.patch('/update/status', async (req, res, next) => {
   }
 });
 
-router.get('/find/all', async (req, res, next) => {
+router.get('/find/all/:idStore', async (req, res, next) => {
+  const idStore = req.params.idStore;
   try {
-    const response = await service.findAll(); // ENLISTA TODOS LOS TICKETS
+    const response = await service.findAll(idStore); // ENLISTA TODOS LOS TICKETS
     res.status(200).json({ data: response });
   } catch (e) {
     next(e);
