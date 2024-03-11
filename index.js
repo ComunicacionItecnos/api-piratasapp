@@ -16,6 +16,10 @@ const main = require('./libs/mongodb');
 require('./utils/auth');
 require('./utils/notifications/firebase');
 
+app.use(cors());
+app.use(express.json({ limit: '1000mb' }));
+// app.use(express.urlencoded({ extended: true, limit: '1000mb' }));
+
 //Config socket.io
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -28,10 +32,6 @@ const io = socketIo(server, {
 });
 
 app.io = io;
-
-app.use(cors());
-app.use(express.json({ limit: '1000mb' }));
-// app.use(express.urlencoded({ extended: true, limit: '1000mb' }));
 
 app.get('/', (req, res) => {
   res.json('Hi Filibustero');
