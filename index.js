@@ -20,7 +20,7 @@ require('./utils/notifications/firebase');
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: config.socketCLientUrl,
+    origin: ['http://localhost:3000', config.socketCLientUrl],
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
