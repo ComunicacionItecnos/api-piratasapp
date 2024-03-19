@@ -12,7 +12,10 @@ const model = mongoose.model('pubterritory', pubTerritorySchema);
 class memberService {
   //CATEGORY
   async findCategory() {
-    const result = await modelCategory.find().exec();
+    const result = await modelCategory
+    .find()
+    .sort({name: 1})
+    .exec();
     return await result
   }
 
@@ -49,8 +52,6 @@ class memberService {
     const result = await modelStab.find().exec();
     return await result
   }
-
-
 
   async delStab(idStab) {
     const session = await model.startSession();
