@@ -112,7 +112,7 @@ class UserService {
 
   // ACTUALIZAR CONTRASEÑA DEL USUARIO
   async updateCurrentPass(idUser, data) {
-    console.log('idUser', idUser);
+
     const session = await User.startSession();
     await session.startTransaction();
     try {
@@ -130,7 +130,7 @@ class UserService {
 
         await User.updateOne({ _id: idUser }, { password: hashPass }); // CAMBIAR POR hashPass
         await session.commitTransaction();
-        console.log('Contraseña actualizada');
+        
         return true;
       }
       await session.commitTransaction();

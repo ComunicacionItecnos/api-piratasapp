@@ -60,7 +60,7 @@ class StoreService {
         }
       }
     ]);
-    console.log(result.length);
+    
     return result;
   }
 
