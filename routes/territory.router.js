@@ -43,6 +43,16 @@ router.post('/estab', async (req, res, next) => {
     }
 });
 
+router.patch('/estab', async (req, res, next) => {
+  const idUser = req.user.sub;
+  try {
+      const response = await service.updateStab({ ...req.body }, idUser); // ENLISTA TODAS LAS TIENDAS
+      res.status(200).json({ data: response });
+  } catch (e) {
+      next(e);
+  }
+});
+
 router.delete('/estab/:idStab', async (req, res, next) => {
     const { idStab } = req.params;
     try {

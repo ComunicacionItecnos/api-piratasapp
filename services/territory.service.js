@@ -31,15 +31,47 @@ class memberService {
     return await result;
   }
 
+  async updateStab(data, idUser) {
+    data.userEdit = idUser;
+    const result = await modelStab.updateOne(
+      { _id: data.idEstab },
+      {
+        $set: {
+          name: data.name,
+          location: data.location,
+          userEdit: idUser
+        },
+      })
+    return await result;
+  }
+
   async findStabs() {
     const result = await modelStab.find().exec();
     return await result
   }
 
+
+
   async delStab(idStab) {
-    const result = await modelStab.deleteOne({ _id: idStab });
-    return await result;
+    const session = await model.startSession();
+    await session.startTransaction();
+    try {
+      //Antes eliminar en los arreglos de publish los objetos con este valor dejando los demas
+      await model.updateMany(
+        { "establishments.idEstab": idStab },
+        { $pull: { establishments: { idEstab: idStab } } }
+      );
+      const result = await modelStab.deleteOne({ _id: idStab });
+      await session.commitTransaction();
+      session.endSession();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw boom.badRequest(error);
+    }
   }
+
 
   //PUBLICITY
   async create(data, idUser) {
