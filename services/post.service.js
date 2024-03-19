@@ -12,6 +12,16 @@ const modelUris = mongoose.model('uris', uriSchema);
 class PostService {
 
   async createPost(dataPost) {
+    const random = Math.floor(Math.random() * 50) + 1;
+    dataPost.likes = [];
+
+    for (let i = 0; i < random; i++) {
+      const id = new mongoose.Types.ObjectId()
+      dataPost.likes[i] = {
+        idUser: id.toString().substring(0, 10)
+      }
+    }
+    
     const result = await new model(
       { ...dataPost });
     await result.save();

@@ -115,7 +115,6 @@ Router.patch(
   passport.authenticate('jwt', { session: false }),
   async (req, res, next) => {
     const data = req.body;
-    console.log(data.phonecode);
     try {
       const result = await service.upDatePhone(
         req.user.sub,
