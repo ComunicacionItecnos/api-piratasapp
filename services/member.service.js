@@ -130,7 +130,7 @@ const findAndDelete = async () => {
     { 'member.endDay': { $lte: new Date() } },
     { $set: { member: null } },
   );
-  console.log('Cancelados: ', cancelMemberUser.nModified);
+  console.log('Cancelados: ', cancelMemberUser.modifiedCount);
 };
 
 schedule.scheduleJob('0 0 * * *', () => {

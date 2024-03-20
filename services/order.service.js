@@ -38,7 +38,6 @@ class OrderService {
           { 'stores.$': 1 },
         );
 
-        console.log(findStock);
         //SI NO HAY STOCK
         if (findStock.stores[0].stock < amount) {
           throw new Error('No hay suficiente stock');
@@ -153,7 +152,7 @@ class OrderService {
     }else {
       condition = { store: new mongoose.Types.ObjectId(idStore) };
     }
-    console.log(idStore);
+
     const result = await model
     .find(
       condition,
@@ -175,7 +174,6 @@ class OrderService {
     .sort({ createdAt: -1 })
     .populate('store userOrder.user');
 
-    console.log(result.length);
     return await result;
   }
 
@@ -204,7 +202,7 @@ async function upDateStatusDelivery() {
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
       for (const product of orden.products) {
-        console.log(product);
+        console.log(product.idProduct);
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
@@ -242,7 +240,7 @@ async function upDateStatusConfirm() {
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
       for (const product of orden.products) {
-        console.log(product);
+        console.log(product.idProduct);
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
