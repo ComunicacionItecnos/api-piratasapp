@@ -36,27 +36,21 @@ router.put('/:id', async (req, res, next) => {
 
     req.app.io.emit('orders', order);
 
-    // const usuarios = await serviceUser.find();
-    // const user = usuarios.filter(
-    //   (user) => user._id.toString() === req.body.user.toString(),
-    // );
+    const usuarios = await serviceUser.find();
+    const user = usuarios.filter(
+      (user) => user._id.toString() === req.body.user._id.toString(),
+    );
 
-    // console.log('User', user);
+    if (req.body.status === 'ready') {
+      const payload = {
+        notification: {
+          title: '¡Pedido listo!',
+          body: 'Tu pedido ya está listo para ser recodigo o enviado',
+        },
+      };
 
-    // if (req.body.status === 'ready') {
-    //   const payload = {
-    //     notification: {
-    //       title: '¡Pedido listo!',
-    //       body: 'Tu pedido ya está listo para ser recodigo o enviado',
-    //     },
-    //   };
-
-    //   const not = await sendNotification(
-    //     'fx6sbeKYTpyMuvmdyI-5ej:APA91bFnrlWvOv381PQRs7zBea8tLP9ZLzzZMu0iQyf63tzgLqkCEvTKBdnfJP_vHwEgOrKguFG9MjkRetih0DPwyDlM3eK4ns3asXlhQy_mqn7VgIa96hdJOZJsKBIKW8_LPrenooqz',
-    //     payload,
-    //   );
-    //   console.log(not);
-    // }
+      sendNotification([user[0].notificationToken], payload);
+    }
 
     res.status(201).json({ data: order });
   } catch (e) {
