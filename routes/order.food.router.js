@@ -7,6 +7,8 @@ const service = new OrderFoodService();
 const UserService = require('../services/user.service');
 const serviceUser = new UserService();
 
+const { sendNotification } = require('../utils/notifications/index');
+
 router.get('/find-by-user', async (req, res, next) => {
   try {
     const orders = await service.findByUser(req.user.sub);
@@ -49,7 +51,11 @@ router.put('/:id', async (req, res, next) => {
         },
       };
 
-      sendNotification([user[0].notificationToken], payload);
+      const notificationSended = sendNotification(
+        [user[0].notificationToken],
+        payload,
+      );
+      console.log('Notification Sended =>', notificationSended);
     }
 
     res.status(201).json({ data: order });
