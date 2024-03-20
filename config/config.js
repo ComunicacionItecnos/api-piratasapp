@@ -9,6 +9,8 @@ const config = {
   oneSignalAppId: process.env.ONESIGNAL_APP_ID,
   oneSignalUserKey: process.env.ONESIGNAL_USER_KEY,
   socketCLientUrl: process.env.SOCKET_CLIENT_URL,
+  privateKeyIdFirebase: process.env.PRIVATE_KEY_ID_FIREBASE,
+  privateKeyFirebase: process.env.PRIVATE_KEY_FIREBASE,
 };
 
 module.exports = config;
