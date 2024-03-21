@@ -51,11 +51,7 @@ router.put('/:id', async (req, res, next) => {
         },
       };
 
-      const notificationSended = sendNotification(
-        [user[0].notificationToken],
-        payload,
-      );
-      console.log('Notification Sended =>', notificationSended);
+      sendNotification([user[0].notificationToken], payload);
     }
 
     res.status(201).json({ data: order });

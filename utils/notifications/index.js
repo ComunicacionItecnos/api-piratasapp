@@ -5,12 +5,8 @@ function sendNotification(registrationToken, payload) {
   admin
     .messaging()
     .sendToDevice(registrationToken, payload)
-    .then((response) => {
-      console.log('Successfully sent message:', response);
-    })
-    .catch((error) => {
-      console.log('Error sending message:', error);
-    });
+    .then((response) => {})
+    .catch((error) => {});
 }
 
 module.exports = { sendNotification };

@@ -21,7 +21,7 @@ const boomErrorHandler = (err, req, res, next) => {
 const errorHandler = (err, req, res, next) => {
   res.status(500).json({
     message: err.message,
-    stack: err.stack,
+    // stack: err.stack,
   });
 };
 

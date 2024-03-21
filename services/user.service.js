@@ -112,7 +112,6 @@ class UserService {
 
   // ACTUALIZAR CONTRASEÑA DEL USUARIO
   async updateCurrentPass(idUser, data) {
-
     const session = await User.startSession();
     await session.startTransaction();
     try {
@@ -130,14 +129,13 @@ class UserService {
 
         await User.updateOne({ _id: idUser }, { password: hashPass }); // CAMBIAR POR hashPass
         await session.commitTransaction();
-        
+
         return true;
       }
       await session.commitTransaction();
       return false;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
       return false;
     } finally {
       await session.endSession();
@@ -176,7 +174,6 @@ class UserService {
       return true;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
       return fasle;
     } finally {
       await session.endSession();
@@ -199,7 +196,6 @@ class UserService {
       return true;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
       return fasle;
     } finally {
       await session.endSession();

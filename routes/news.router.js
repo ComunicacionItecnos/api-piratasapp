@@ -42,7 +42,6 @@ router.post('/', async (req, res, next) => {
     const tokens = filter.map((user) => user.notificationToken);
 
     // Ejemplo de uso
-    const registrationToken = tokens;
     const payload = {
       notification: {
         title: req.body.title,
@@ -50,11 +49,10 @@ router.post('/', async (req, res, next) => {
       },
     };
 
-    sendNotification(registrationToken, payload);
+    sendNotification(tokens, payload);
 
     res.status(201).json({ data: article });
   } catch (e) {
-    console.log(e);
     next(e);
   }
 });

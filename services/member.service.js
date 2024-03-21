@@ -100,7 +100,6 @@ class memberService {
       )
       .populate({ path: 'member.idMember', select: 'name price' });
 
-    console.log(result.length);
     return result;
   }
 
@@ -112,7 +111,6 @@ class memberService {
       },
       'name nickname lastname motherlastname phone email image',
     );
-    console.log(result.length);
     return result;
   }
 

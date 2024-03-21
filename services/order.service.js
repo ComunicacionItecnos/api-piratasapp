@@ -53,7 +53,6 @@ class OrderService {
       session.endSession();
       return order;
     } catch (error) {
-      console.log(error);
       await session.abortTransaction();
       session.endSession();
       throw boom.badRequest(error);
@@ -147,16 +146,14 @@ class OrderService {
 
   async findAll(idStore) {
     let condition = {};
-    if (idStore === "all") {
+    if (idStore === 'all') {
       condition = {};
-    }else {
+    } else {
       condition = { store: new mongoose.Types.ObjectId(idStore) };
     }
 
     const result = await model
-    .find(
-      condition,
-      {
+      .find(condition, {
         ' _id': 1,
         deliveryDate: 1,
         status: 1,
@@ -169,10 +166,9 @@ class OrderService {
         },
         createdAt: 1,
         updatedAt: 1,
-      },
-    )
-    .sort({ createdAt: -1 })
-    .populate('store userOrder.user');
+      })
+      .sort({ createdAt: -1 })
+      .populate('store userOrder.user');
 
     return await result;
   }
