@@ -4,6 +4,7 @@ const boom = require('@hapi/boom');
 const orderSchema = require('../schemas/order.schema');
 const productSchema = require('../schemas/product.schema');
 const { encrypt, decrypt } = require('../utils/crypt/index');
+const { sendNotification } = require('../utils/notifications/index');
 
 const model = mongoose.model('order', orderSchema);
 const productModel = mongoose.model('product', productSchema);
@@ -95,17 +96,53 @@ class OrderService {
   }
 
   async updateStatus(data, userLogged) {
+    console.log(data)
+
     if (data.status === 'Cancelado por cliente') {
       data.statusNote = 'Cancelado por el cliente';
+
     } else if (data.status === 'Entregado') {
       data.statusNote = 'Pedido entregado al cliente';
+      const payload = {
+        notification: {
+          title: '¡Gracias por tu compra!',
+          body: 'Ya has recogido tu pedido',
+        }
+      }
+      const notificationSended = sendNotification(
+        [data.clientToken],
+        payload,
+      );
+
     } else if (data.status === 'En curso') {
       data.statusNote = 'Pedido confirmado';
+      const payload = {
+        notification: {
+          title: '¡Tu pedido ha sido confirmado!',
+          body: 'Tienes dos días para recogerlos, consulta tu ticket en la app',
+        }
+      }
+      const notificationSended = sendNotification(
+        [data.clientToken],
+        payload,
+      );
+    } else if (data.status === 'Cancelado por la tienda') {
+      const payload = {
+        notification: {
+          title: '¡Lo sentimo tu pédido no ha sido aprobado!',
+          body: data.statusNote,
+        }
+      }
+      const notificationSended = sendNotification(
+        [data.clientToken],
+        payload,
+      );
     }
 
     const idOrder = data.idOrder;
     const status = data.status;
     const statusNote = data.statusNote;
+
     const session = await model.startSession();
     await session.startTransaction();
     try {
@@ -202,7 +239,9 @@ async function upDateStatusDelivery() {
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
       for (const product of orden.products) {
+
         console.log(product.idProduct);
+
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
@@ -240,7 +279,9 @@ async function upDateStatusConfirm() {
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
       for (const product of orden.products) {
+
         console.log(product.idProduct);
+
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
