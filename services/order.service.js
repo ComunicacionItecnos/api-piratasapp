@@ -96,8 +96,6 @@ class OrderService {
   }
 
   async updateStatus(data, userLogged) {
-    console.log(data)
-
     if (data.status === 'Cancelado por cliente') {
       data.statusNote = 'Cancelado por el cliente';
 
@@ -229,19 +227,20 @@ async function upDateStatusDelivery() {
   await session.startTransaction();
   try {
     const currentDate = new Date();
+    console.log(currentDate)
     const ordersCancel = await model.find({
       deliveryDate: { $lte: currentDate },
       status: { $in: ['En curso'] },
-    });
+    }).populate('store userOrder.user userEdit.idUser products.idProduct');
 
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
+      console.log('--------------------- orden no recogida -----------------------')
+      console.log(orden)
       for (const product of orden.products) {
-
-        console.log(product.idProduct);
-
+        //console.log(product.idProduct);
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
@@ -272,15 +271,18 @@ async function upDateStatusConfirm() {
     const ordersCancel = await model.find({
       confirmationDate: { $lte: currentDate },
       status: { $in: ['Pendiente'] },
-    });
+    }).populate('store userOrder.user userEdit.idUser products.idProduct');
 
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
+      console.log('--------------------- orden pendiente -----------------------')
+      console.log(orden)
+
       for (const product of orden.products) {
 
-        console.log(product.idProduct);
+        //console.log(product.idProduct);
 
         const idProduct = product.idProduct;
         const amount = product.amount;
