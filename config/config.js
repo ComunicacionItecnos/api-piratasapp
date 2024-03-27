@@ -11,6 +11,7 @@ const config = {
   socketCLientUrl: process.env.SOCKET_CLIENT_URL,
   privateKeyIdFirebase: process.env.PRIVATE_KEY_ID_FIREBASE,
   privateKeyFirebase: process.env.PRIVATE_KEY_FIREBASE,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
 };
 
 module.exports = config;
