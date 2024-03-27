@@ -4,6 +4,7 @@ const boom = require('@hapi/boom');
 const orderSchema = require('../schemas/order.schema');
 const productSchema = require('../schemas/product.schema');
 const { encrypt, decrypt } = require('../utils/crypt/index');
+const { sendNotification } = require('../utils/notifications/index');
 
 const model = mongoose.model('order', orderSchema);
 const productModel = mongoose.model('product', productSchema);
@@ -98,13 +99,36 @@ class OrderService {
       data.statusNote = 'Cancelado por el cliente';
     } else if (data.status === 'Entregado') {
       data.statusNote = 'Pedido entregado al cliente';
+      const payload = {
+        notification: {
+          title: '¡Gracias por tu compra!',
+          body: 'Ya has recogido tu pedido',
+        },
+      };
+      const notificationSended = sendNotification([data.clientToken], payload);
     } else if (data.status === 'En curso') {
       data.statusNote = 'Pedido confirmado';
+      const payload = {
+        notification: {
+          title: '¡Tu pedido ha sido confirmado!',
+          body: 'Tienes dos días para recogerlo, consulta tu ticket en la app',
+        },
+      };
+      const notificationSended = sendNotification([data.clientToken], payload);
+    } else if (data.status === 'Cancelado por la tienda') {
+      const payload = {
+        notification: {
+          title: '¡Lo sentimao tu pedido no ha sido aprobado!',
+          body: data.statusNote,
+        },
+      };
+      const notificationSended = sendNotification([data.clientToken], payload);
     }
 
     const idOrder = data.idOrder;
     const status = data.status;
     const statusNote = data.statusNote;
+
     const session = await model.startSession();
     await session.startTransaction();
     try {
@@ -187,18 +211,32 @@ async function upDateStatusDelivery() {
   const session = await model.startSession();
   await session.startTransaction();
   try {
+    const payload = {
+      notification: {
+        title: '¡Parece que no has recogido tu pedido!',
+        body: 'Recuerda que puedes cancelar la orden desde la aplicación',
+      },
+    };
+
     const currentDate = new Date();
-    const ordersCancel = await model.find({
-      deliveryDate: { $lte: currentDate },
-      status: { $in: ['En curso'] },
-    });
+    const ordersCancel = await model
+      .find({
+        deliveryDate: { $lte: currentDate },
+        status: { $in: ['En curso'] },
+      })
+      .populate('store userOrder.user userEdit.idUser products.idProduct');
 
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
+
+      const notificationSended = sendNotification(
+        [orden.userOrder.user.notificationToken],
+        payload,
+      );
+
       for (const product of orden.products) {
-        console.log(product.idProduct);
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
@@ -211,7 +249,6 @@ async function upDateStatusDelivery() {
 
     await session.commitTransaction();
     session.endSession();
-    console.log(currentDate + 'Ordenes vencidas.');
   } catch (error) {
     console.error('Error al actualizar estados de órdenes vencidas:', error);
     await session.abortTransaction();
@@ -224,19 +261,32 @@ async function upDateStatusConfirm() {
   const session = await model.startSession();
   await session.startTransaction();
   try {
-    const currentDate = new Date();
+    const payload = {
+      notification: {
+        title: '¡Lo sentimos tu pedido no ha sido aprobado!',
+        body: 'El producto está disponible en otras tiendas',
+      },
+    };
 
-    const ordersCancel = await model.find({
-      confirmationDate: { $lte: currentDate },
-      status: { $in: ['Pendiente'] },
-    });
+    const currentDate = new Date();
+    const ordersCancel = await model
+      .find({
+        confirmationDate: { $lte: currentDate },
+        status: { $in: ['Pendiente'] },
+      })
+      .populate('store userOrder.user userEdit.idUser products.idProduct');
 
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
+
+      const notificationSended = sendNotification(
+        [orden.userOrder.user.notificationToken],
+        payload,
+      );
+
       for (const product of orden.products) {
-        console.log(product.idProduct);
         const idProduct = product.idProduct;
         const amount = product.amount;
         await productModel.updateOne(
@@ -249,7 +299,6 @@ async function upDateStatusConfirm() {
 
     await session.commitTransaction();
     session.endSession();
-    console.log(currentDate + 'Ordenes no constestadas.');
   } catch (error) {
     console.error('Error al actualizar estados de órdenes:', error);
     await session.abortTransaction();
@@ -258,6 +307,7 @@ async function upDateStatusConfirm() {
 }
 
 // Programar la tarea para que se ejecute diariamente
+// '0 = minutos 0 = horas *** = todos los dias de todos los meses de todo el año'
 schedule.scheduleJob('0 0 * * *', () => {
   upDateStatusDelivery();
   upDateStatusConfirm();
