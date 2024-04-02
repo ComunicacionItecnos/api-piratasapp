@@ -137,7 +137,7 @@ class UserService {
       return false;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
+      //console.log(err);
       return false;
     } finally {
       await session.endSession();
@@ -176,7 +176,7 @@ class UserService {
       return true;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
+      //console.log(err);
       return fasle;
     } finally {
       await session.endSession();
@@ -199,7 +199,7 @@ class UserService {
       return true;
     } catch (err) {
       await session.abortTransaction();
-      console.log(err);
+      //console.log(err);
       return fasle;
     } finally {
       await session.endSession();
@@ -230,6 +230,13 @@ class UserService {
   async findById(id) {
     return this.getProfile(id);
   }
+
+  async delete(id) {
+    const result = await User.findByIdAndDelete(id);
+    return result;
+  }
+
+
 }
 
 module.exports = UserService;

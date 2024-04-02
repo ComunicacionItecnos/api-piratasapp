@@ -169,4 +169,17 @@ Router.get(
   },
 );
 
+Router.delete(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const user = await service.delete(req.user.sub);
+      res.status(200).json({ data: user });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 module.exports = Router;
