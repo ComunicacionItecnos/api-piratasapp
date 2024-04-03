@@ -2,7 +2,7 @@ const mongoErrorHandler = (err, req, res, next) => {
   const { stack, message } = err;
   const splitStack = stack.split(':');
   if (splitStack[0] === 'MongoServerError') {
-    res.status(400).json({
+    res.status(500).json({
       message: message,
     });
   }
@@ -21,7 +21,7 @@ const boomErrorHandler = (err, req, res, next) => {
 const errorHandler = (err, req, res, next) => {
   res.status(500).json({
     message: err.message,
-    // stack: err.stack,
+    stack: err.stack,
   });
 };
 
