@@ -229,6 +229,7 @@ class OrderService {
 
 // Función para actualizar el estado de las órdenes vencidas
 async function upDateStatusDelivery() {
+  //console.log('upDateStatusDelivery')
   const session = await model.startSession();
   await session.startTransaction();
   try {
@@ -246,15 +247,24 @@ async function upDateStatusDelivery() {
       status: { $in: ['En curso'] },
     }).populate('store userOrder.user userEdit.idUser products.idProduct');
 
+    //console.log(ordersCancel)
+
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
 
-      const notificationSended = sendNotification(
-        [orden.userOrder.user.notificationToken],
-        payload,
-      );
+      if(orden.userOrder && orden.userOrder.user && orden.userOrder.user.notificationToken){
+        const notificationSended = sendNotification(
+          [orden.userOrder.user.notificationToken],
+          payload,
+        );
+      }else{
+        orden.status = "Cancelado por cliente"
+        orden.statusNote = "Parece que el usuario ya no existe."
+      }
+
+      //console.log(orden)
 
       for (const product of orden.products) {
         const idProduct = product.idProduct;
@@ -278,6 +288,7 @@ async function upDateStatusDelivery() {
 
 // Función para actualizar el estado de las órdenes no constestadas
 async function upDateStatusConfirm() {
+  //console.log('upDateStatusConfirm')
   const session = await model.startSession();
   await session.startTransaction();
   try {
@@ -299,11 +310,17 @@ async function upDateStatusConfirm() {
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
 
-      const notificationSended = sendNotification(
-        [orden.userOrder.user.notificationToken],
-        payload,
-      );
+      if(orden.userOrder && orden.userOrder.user && orden.userOrder.user.notificationToken){
+        const notificationSended = sendNotification(
+          [orden.userOrder.user.notificationToken],
+          payload,
+        );
+      }else{
+        orden.status = "Cancelado por cliente"
+        orden.statusNote = "Parece que el usuario ya no existe."
+      }
 
+      //console.log(orden)
       for (const product of orden.products) {
         const idProduct = product.idProduct;
         const amount = product.amount;
