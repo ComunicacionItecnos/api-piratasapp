@@ -19,7 +19,8 @@ class PostService {
       };
     }
 
-    const result = await new model({ ...dataPost });
+    const result = await new model(
+      { ...dataPost });
     await result.save();
     return await result;
   }
@@ -309,19 +310,18 @@ class PostService {
           memberDetails: 1,
           memberActive: { $ifNull: ['$user.member.active', false] },
           // "likes": 1,
-          createdAt: 1,
-          countLikes: { $size: '$likes' },
-          comments: 1,
-        },
-      },
+          "createdAt": 1,
+          "countLikes": { "$size": '$likes' },
+          //"comments": 1,
+        }
+      }
     ]);
 
     if (result.length === 0) {
       throw boom.notFound('Post not found');
     } else {
-      const findStatus = result[0].user.status.find(
-        (status) => status.name === 'posts',
-      );
+      const findStatus = result[0].user.status.find(status => status.name === 'posts');
+      //console.log(result[0])
       if (findStatus) {
         if (findStatus.value === false) {
           throw boom.notFound('Post not found');
@@ -353,16 +353,18 @@ class PostService {
       })
       .exec();
 
-    const filterUserStatus = result.comments.filter((comment) => {
-      const findStatus = comment.user.status.find(
-        (status) => status.name === 'posts',
-      );
-      if (findStatus) {
-        if (findStatus.value === false) {
-          return false;
+    const filterUserStatus = result.comments.filter(comment => {
+      if (comment.user) {
+        const findStatus = comment.user.status.find(status => status.name === 'posts');
+        if (findStatus) {
+          if (findStatus.value === false) {
+            return false;
+          }
         }
+        return true;
+      } else {
+        return false;
       }
-      return true;
     });
 
     // Ahora, result contiene los comentarios filtrados
@@ -433,16 +435,18 @@ class PostService {
       })
       .exec();
 
-    const filterUserStatus = result.comments.filter((comment) => {
-      const findStatus = comment.user.status.find(
-        (status) => status.name === 'posts',
-      );
-      if (findStatus) {
-        if (findStatus.value === false) {
-          return false;
+    const filterUserStatus = result.comments.filter(comment => {
+      if (comment.user) {
+        const findStatus = comment.user.status.find(status => status.name === 'posts');
+        if (findStatus) {
+          if (findStatus.value === false) {
+            return false;
+          }
         }
+        return true;
+      } else {
+        return false;
       }
-      return true;
     });
     return await filterUserStatus.length;
   }

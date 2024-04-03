@@ -148,7 +148,7 @@ router.delete('/comments/delete/:idpost/:idcomment', async (req, res, next) => {
 router.patch('/upImage', async (req, res, next) => {
   const {image} = req.body;
   try {
-    const response = await service.updateImagePosts(image); // BUSCA POST POR ID
+    const response = await service.updateImagePosts(image); 
     res.status(200).json({ data: response });
   } catch (e) {
     next(e);

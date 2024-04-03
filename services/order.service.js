@@ -54,6 +54,7 @@ class OrderService {
       session.endSession();
       return order;
     } catch (error) {
+      //console.log(error);
       await session.abortTransaction();
       session.endSession();
       throw boom.badRequest(error);
@@ -95,43 +96,61 @@ class OrderService {
   }
 
   async updateStatus(data, userLogged) {
-    if (data.status === 'Cancelado por cliente') {
-      data.statusNote = 'Cancelado por el cliente';
-    } else if (data.status === 'Entregado') {
-      data.statusNote = 'Pedido entregado al cliente';
-      const payload = {
-        notification: {
-          title: '¡Gracias por tu compra!',
-          body: 'Ya has recogido tu pedido',
-        },
-      };
-      const notificationSended = sendNotification([data.clientToken], payload);
-    } else if (data.status === 'En curso') {
-      data.statusNote = 'Pedido confirmado';
-      const payload = {
-        notification: {
-          title: '¡Tu pedido ha sido confirmado!',
-          body: 'Tienes dos días para recogerlo, consulta tu ticket en la app',
-        },
-      };
-      const notificationSended = sendNotification([data.clientToken], payload);
-    } else if (data.status === 'Cancelado por la tienda') {
-      const payload = {
-        notification: {
-          title: '¡Lo sentimao tu pedido no ha sido aprobado!',
-          body: data.statusNote,
-        },
-      };
-      const notificationSended = sendNotification([data.clientToken], payload);
-    }
-
-    const idOrder = data.idOrder;
-    const status = data.status;
-    const statusNote = data.statusNote;
 
     const session = await model.startSession();
     await session.startTransaction();
     try {
+      if (data.status === 'Cancelado por cliente') {
+        data.statusNote = 'Cancelado por el cliente';
+
+      } else if (data.status === 'Entregado') {
+        data.statusNote = 'Pedido entregado al cliente';
+        const payload = {
+          notification: {
+            title: '¡Gracias por tu compra!',
+            body: 'Ya has recogido tu pedido',
+          }
+        }
+        const notificationSended = sendNotification(
+          [data.clientToken],
+          payload,
+        );
+
+      } else if (data.status === 'En curso') {
+        data.statusNote = 'Pedido confirmado';
+        const payload = {
+          notification: {
+            title: '¡Tu pedido ha sido confirmado!',
+            body: 'Tienes dos días para recogerlo, consulta tu ticket en la app',
+          }
+        }
+        const notificationSended = sendNotification(
+          [data.clientToken],
+          payload,
+        );
+
+      } else if (data.status === 'Cancelado por la tienda') {
+        if (!data.clientToken) {
+          data.status = "Cancelado por cliente"
+          data.statusNote = "Parece que el usuario ya no existe."
+        } else {
+          const payload = {
+            notification: {
+              title: '¡Lo sentimos tu pedido no ha sido aprobado!',
+              body: data.statusNote,
+            }
+          }
+          const notificationSended = sendNotification(
+            [data.clientToken],
+            payload,
+          );
+        }
+      }
+
+      const idOrder = data.idOrder;
+      const status = data.status;
+      const statusNote = data.statusNote;
+
       if (
         status === 'Cancelado por cliente' ||
         status === 'Cancelado por la tienda'
@@ -157,7 +176,6 @@ class OrderService {
           },
         },
       );
-
       await session.commitTransaction();
       session.endSession();
       return result;
@@ -192,7 +210,7 @@ class OrderService {
         updatedAt: 1,
       })
       .sort({ createdAt: -1 })
-      .populate('store userOrder.user');
+      .populate('store');
 
     return await result;
   }
@@ -208,6 +226,7 @@ class OrderService {
 
 // Función para actualizar el estado de las órdenes vencidas
 async function upDateStatusDelivery() {
+  //console.log('upDateStatusDelivery')
   const session = await model.startSession();
   await session.startTransaction();
   try {
@@ -226,15 +245,24 @@ async function upDateStatusDelivery() {
       })
       .populate('store userOrder.user userEdit.idUser products.idProduct');
 
+    //console.log(ordersCancel)
+
     for (const orden of ordersCancel) {
       const idStore = orden.store;
       orden.status = 'Cancelado sin entrega'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El cliente no recogió el producto';
 
-      const notificationSended = sendNotification(
-        [orden.userOrder.user.notificationToken],
-        payload,
-      );
+      if(orden.userOrder && orden.userOrder.user && orden.userOrder.user.notificationToken){
+        const notificationSended = sendNotification(
+          [orden.userOrder.user.notificationToken],
+          payload,
+        );
+      }else{
+        orden.status = "Cancelado por cliente"
+        orden.statusNote = "Parece que el usuario ya no existe."
+      }
+
+      //console.log(orden)
 
       for (const product of orden.products) {
         const idProduct = product.idProduct;
@@ -258,6 +286,7 @@ async function upDateStatusDelivery() {
 
 // Función para actualizar el estado de las órdenes no constestadas
 async function upDateStatusConfirm() {
+  //console.log('upDateStatusConfirm')
   const session = await model.startSession();
   await session.startTransaction();
   try {
@@ -281,11 +310,17 @@ async function upDateStatusConfirm() {
       orden.status = 'Cancelado sin confirmación'; // Actualizar el estado según tus necesidades
       orden.statusNote = 'El vendedor no confirmó la orden';
 
-      const notificationSended = sendNotification(
-        [orden.userOrder.user.notificationToken],
-        payload,
-      );
+      if(orden.userOrder && orden.userOrder.user && orden.userOrder.user.notificationToken){
+        const notificationSended = sendNotification(
+          [orden.userOrder.user.notificationToken],
+          payload,
+        );
+      }else{
+        orden.status = "Cancelado por cliente"
+        orden.statusNote = "Parece que el usuario ya no existe."
+      }
 
+      //console.log(orden)
       for (const product of orden.products) {
         const idProduct = product.idProduct;
         const amount = product.amount;
