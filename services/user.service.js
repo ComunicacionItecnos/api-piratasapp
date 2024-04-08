@@ -234,8 +234,6 @@ class UserService {
     const result = await User.findByIdAndDelete(id);
     return result;
   }
-
-
 }
 
 module.exports = UserService;

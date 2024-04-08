@@ -59,6 +59,7 @@ const userSchema = mongoose.Schema(
 
 userSchema.add({
   notificationToken: { type: String, default: '' },
+  termsAndConditions: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('user', userSchema);
