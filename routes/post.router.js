@@ -80,6 +80,27 @@ router.post('/comments', async (req, res, next) => {
   }
 });
 
+//REPORTS
+router.post('/reports', async (req, res, next) => {
+  const idUser = req.user.sub;
+  try {
+    const response = await service.reportByUser({ ...req.body }, idUser); //AÑADE EL LIKE DEL USUARIO
+    res.status(200).json({ data: response });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post('/reports/comment', async (req, res, next) => {
+  const idUser = req.user.sub;
+  try {
+    const response = await service.reportCommentByUser({ ...req.body }, idUser); //AÑADE EL LIKE DEL USUARIO
+    res.status(200).json({ data: response });
+  } catch (e) {
+    next(e);
+  }
+});
+
 //LIKES
 router.post('/likepost', async (req, res, next) => {
   const idUser = req.user.sub;
@@ -148,7 +169,7 @@ router.delete('/comments/delete/:idpost/:idcomment', async (req, res, next) => {
 router.patch('/upImage', async (req, res, next) => {
   const {image} = req.body;
   try {
-    const response = await service.updateImagePosts(image); 
+    const response = await service.updateImagePosts(image);
     res.status(200).json({ data: response });
   } catch (e) {
     next(e);

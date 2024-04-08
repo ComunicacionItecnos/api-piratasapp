@@ -13,7 +13,7 @@ const opts = {
 const jwtStrategy = new Strategy(opts, async (jwt_payload, done) => {
   const user = await service.getProfile(jwt_payload.sub);
 
-  console.log('user', user);
+  //console.log('user', user);
 
   if (!user) {
     done(boom.unauthorized(), false);

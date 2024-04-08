@@ -82,6 +82,7 @@ class PostService {
           createdAt: 1,
           countLikes: { $size: '$likes' },
           countComments: { $size: '$comments' },
+          countReports: { $size: '$reports' },
         },
       },
     ]);
@@ -139,8 +140,10 @@ class PostService {
           contentType: 1,
           imageContent: 1,
           likes: 1,
+          //reports: 1,
           createdAt: 1,
           countLikes: { $size: '$likes' },
+          countReports: { $size: '$reports' },
           countComments: { $size: '$comments' },
         },
       },
@@ -227,6 +230,7 @@ class PostService {
           createdAt: 1,
           countLikes: { $size: '$likes' },
           countComments: { $size: '$comments' },
+          countReports: { $size: '$reports' }
         },
       },
       {
@@ -312,6 +316,7 @@ class PostService {
           // "likes": 1,
           "createdAt": 1,
           "countLikes": { "$size": '$likes' },
+          "countReports": { $size: '$reports' },
           //"comments": 1,
         }
       }
@@ -392,6 +397,60 @@ class PostService {
       { $push: { likes: dataPost.likes } },
     );
     return await result;
+  }
+
+  async reportByUser(dataPost, idUser) {
+    const report = {
+      idUser: idUser,
+      reason: dataPost.reason
+    };
+
+    // Buscar si ya existe un reporte con el mismo idUser
+    const existingReport = await model.findOneAndUpdate(
+      { _id: dataPost.idPost, "reports.idUser": idUser }
+    );
+
+    // Si no existe un reporte con el mismo idUser, se hace un insert
+    if (!existingReport) {
+      const result = await model.findOneAndUpdate(
+        { _id: dataPost.idPost },
+        { $push: { reports: report } }
+      );
+      return await result;
+    }
+
+    return await existingReport;
+  }
+
+  async reportCommentByUser(dataPost, idUser) {
+    const report = {
+      idUser: idUser,
+      reason: dataPost.reason
+    };
+
+    // Buscar si ya existe un reporte con el mismo idUser
+    const existingReport = await model.findOne(
+      { _id: dataPost.idPost, "comments.reports.idUser": idUser }
+    );
+
+    // Si no existe un reporte con el mismo idUser, se hace un insert
+    if (!existingReport) {
+      const result = await model.findOneAndUpdate(
+        {
+          _id: dataPost.idPost,
+          "comments._id": dataPost.commentId // Identificador único del comentario
+        },
+        {
+          $push: { "comments.$.reports": report }
+        },
+        {
+          new: true
+        }
+      );
+      return await result;
+    }
+
+    return await existingReport;
   }
 
   async deletePost(idPost) {
