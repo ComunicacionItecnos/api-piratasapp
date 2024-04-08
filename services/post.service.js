@@ -406,9 +406,10 @@ class PostService {
     };
 
     // Buscar si ya existe un reporte con el mismo idUser
-    const existingReport = await model.findOneAndUpdate(
+    const existingReport = await model.findOne(
       { _id: dataPost.idPost, "reports.idUser": idUser }
     );
+
 
     // Si no existe un reporte con el mismo idUser, se hace un insert
     if (!existingReport) {
