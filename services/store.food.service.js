@@ -22,6 +22,18 @@ class StoreFoodService {
 
     return store;
   }
+
+  async update(id, data) {
+    const store = await StoreFood.findOneAndUpdate({ _id: id }, data).exec();
+
+    return store;
+  }
+
+  async delete(id) {
+    const store = await StoreFood.findByIdAndDelete({ _id: id }).exec();
+
+    return store;
+  }
 }
 
 module.exports = StoreFoodService;
