@@ -14,6 +14,7 @@ const playerSchema = mongoose.Schema({
 playerSchema.add({
   type: String,
   imageUri: String,
+  imageUriStadistics: String,
 });
 
 module.exports = mongoose.model('players', playerSchema);
