@@ -5,7 +5,11 @@ const ProductFoodSchema = new mongoose.Schema({
   image: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true },
-  storeId: { type: String, required: true },
+  store: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'storesfood',
+    required: true,
+  },
   status: { type: String, required: true },
 });
 

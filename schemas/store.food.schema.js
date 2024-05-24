@@ -9,4 +9,8 @@ const StoreFoodSchema = new mongoose.Schema({
   deliveryOption: String,
 });
 
+StoreFoodSchema.add({
+  status: String,
+});
+
 module.exports = mongoose.model('storesfood', StoreFoodSchema);

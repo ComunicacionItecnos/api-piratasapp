@@ -3,14 +3,16 @@ const ProductFood = require('../schemas/product.food.schema');
 class ProductService {
   async findByStore(storeId) {
     const products = await ProductFood.find({
-      storeId: storeId,
+      store: storeId,
     }).exec();
 
     return products;
   }
 
   async findOne(id) {
-    const product = await ProductFood.findOne({ _id: id }).exec();
+    const product = await ProductFood.findOne({ _id: id })
+      .populate('store')
+      .exec();
 
     return product;
   }
